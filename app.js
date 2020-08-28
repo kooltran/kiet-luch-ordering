@@ -1,41 +1,132 @@
-var createError = require('http-errors');
-var express = require('express');
-var path = require('path');
-var cookieParser = require('cookie-parser');
-var logger = require('morgan');
+const dotenv = require('dotenv')
+const mongoose = require('mongoose')
+const express = require('express')
+const puppeteer = require('puppeteer')
+const bodyParser = require('body-parser')
+const passport = require('passport')
+const cookiesSession = require('cookie-session')
 
-var indexRouter = require('./routes/index');
-var usersRouter = require('./routes/users');
+// const cors = require('cors')
 
-var app = express();
+const config = require('./config.json')
 
-// view engine setup
-app.set('views', path.join(__dirname, 'views'));
-app.set('view engine', 'jade');
+const MenuList = require('./models/menu')
+const orderRoute = require('./routes/orderDish')
 
-app.use(logger('dev'));
-app.use(express.json());
-app.use(express.urlencoded({ extended: false }));
-app.use(cookieParser());
-app.use(express.static(path.join(__dirname, 'public')));
+require('./passport-setup')
 
-app.use('/', indexRouter);
-app.use('/users', usersRouter);
+dotenv.config()
 
-// catch 404 and forward to error handler
-app.use(function(req, res, next) {
-  next(createError(404));
-});
+const app = express()
+const PORT = process.env.PORT || 3000
+const db = mongoose.connection
 
-// error handler
-app.use(function(err, req, res, next) {
-  // set locals, only providing error in development
-  res.locals.message = err.message;
-  res.locals.error = req.app.get('env') === 'development' ? err : {};
+app.use(express.static(path.join(__dirname, 'build')))
 
-  // render the error page
-  res.status(err.status || 500);
-  res.render('error');
-});
+app.get('/*', (req, res) => {
+  res.sendFile(path.join(__dirname, 'build', 'index.html'))
+})
 
-module.exports = app;
+app.use(bodyParser.json())
+// app.use(cors({ credentials: true, origin: 'http://localhost:3001/' }))
+
+const URL = 'https://www.anzi.com.vn/'
+
+mongoose
+  .connect(process.env.DB_URL, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+    useCreateIndex: true,
+  })
+  .then(() => console.log('DB connected'))
+db.on('error', err => {
+  console.log('DB connection error:', err.message)
+})
+
+const getMenuList = async () => {
+  try {
+    const brower = await puppeteer.launch()
+    const page = await brower.newPage()
+    await page.goto(URL)
+    const existList = await MenuList.find()
+
+    const menuList = await page.evaluate(() => {
+      const items = document.querySelectorAll('#list_menu .item-menu')
+      let menuInfo = []
+      items.forEach((item = {}) => {
+        console.log(item)
+        const img = item.children[0].children[0].src
+        const name = item.children[1].textContent.trim()
+        const price = item.children[2].children[0].textContent.trim()
+        menuInfo.push({ name, img, price })
+      })
+      return menuInfo
+    })
+
+    if (existList.length === 0) {
+      MenuList.insertMany(menuList)
+    } else {
+      const newList = menuList.map((item, idx) => ({
+        id: existList[idx]._id,
+        name: item.name,
+        img: item.img,
+        price: item.price,
+      }))
+      newList.map(async (item = {}) =>
+        MenuList.updateOne({ _id: item.id }, item, { upsert: false })
+      )
+    }
+    return menuList
+  } catch (error) {
+    console.log(error)
+  }
+}
+
+getMenuList()
+
+app.get('/menuList', async (request, response) => {
+  try {
+    const res = await MenuList.find()
+    response.send(res)
+  } catch (error) {
+    response.status(500).send(error)
+  }
+})
+
+app.use(
+  cookiesSession({
+    maxAge: 30 * 24 * 60 * 60 * 1000,
+    keys: [config.session],
+    secret: config.secret,
+  })
+)
+
+app.use(passport.initialize())
+app.use(passport.session())
+
+app.get(
+  '/google',
+  passport.authenticate('google', {
+    scope: ['profile', 'email'],
+  })
+)
+
+app.get('/google/callback', passport.authenticate('google'), (req, res) => {
+  res.redirect('http://localhost:3001')
+})
+
+app.get('/user', (req, res) => {
+  if (req.user) {
+    res.send(req.user)
+  } else {
+    res.send({})
+  }
+})
+
+app.use('/orders', orderRoute)
+
+app.listen(PORT, () => {
+  console.log('Server started on http://localhost:' + PORT)
+})
+
+module.exports = app
