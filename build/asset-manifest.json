@@ -1,0 +1,31 @@
+{
+  "files": {
+    "main.css": "/static/css/main.1735740d.chunk.css",
+    "main.js": "/static/js/main.220e0606.chunk.js",
+    "main.js.map": "/static/js/main.220e0606.chunk.js.map",
+    "runtime-main.js": "/static/js/runtime-main.c552d4ad.js",
+    "runtime-main.js.map": "/static/js/runtime-main.c552d4ad.js.map",
+    "static/css/2.9a566409.chunk.css": "/static/css/2.9a566409.chunk.css",
+    "static/js/2.39469185.chunk.js": "/static/js/2.39469185.chunk.js",
+    "static/js/2.39469185.chunk.js.map": "/static/js/2.39469185.chunk.js.map",
+    "index.html": "/index.html",
+    "precache-manifest.70a7d605918981c96eb8809de6473539.js": "/precache-manifest.70a7d605918981c96eb8809de6473539.js",
+    "service-worker.js": "/service-worker.js",
+    "static/css/2.9a566409.chunk.css.map": "/static/css/2.9a566409.chunk.css.map",
+    "static/css/main.1735740d.chunk.css.map": "/static/css/main.1735740d.chunk.css.map",
+    "static/js/2.39469185.chunk.js.LICENSE.txt": "/static/js/2.39469185.chunk.js.LICENSE.txt",
+    "static/media/cart.svg": "/static/media/cart.890dce60.svg",
+    "static/media/cross.svg": "/static/media/cross.441d8611.svg",
+    "static/media/fobiden-order.svg": "/static/media/fobiden-order.6b4b70dc.svg",
+    "static/media/loading.svg": "/static/media/loading.d41570f2.svg",
+    "static/media/plus.svg": "/static/media/plus.311313cd.svg",
+    "static/media/Orders.scss": "/static/media/tick.db93b3b8.svg"
+  },
+  "entrypoints": [
+    "static/js/runtime-main.c552d4ad.js",
+    "static/css/2.9a566409.chunk.css",
+    "static/js/2.39469185.chunk.js",
+    "static/css/main.1735740d.chunk.css",
+    "static/js/main.220e0606.chunk.js"
+  ]
+}
